@@ -89,6 +89,37 @@ def download_and_install_mtg(version):
         print(f"{RED}[!] Critical Error during installation: {e}{RESET}")
         sys.exit(1)
 
+def optimize_network_performance():
+    """Enable Google BBR Congestion Control and optimize TCP buffers for higher download speed."""
+    print(f"{YELLOW}[*] Optimizing Linux network stack and enabling BBR...{RESET}")
+    try:
+        sysctl_params = [
+            "net.core.default_qdisc=fq\n",
+            "net.ipv4.tcp_congestion_control=bbr\n",
+            "net.ipv4.tcp_rmem=4096 87380 16777216\n",
+            "net.ipv4.tcp_wmem=4096 65536 16777216\n"
+        ]
+        
+        with open("/etc/sysctl.conf", "r") as f:
+            current_lines = f.readlines()
+        
+        is_updated = False
+        for param in sysctl_params:
+            key = param.split("=")[0]
+            if not any(key in line for line in current_lines):
+                current_lines.append(param)
+                is_updated = True
+                
+        if is_updated:
+            with open("/etc/sysctl.conf", "w") as f:
+                f.writelines(current_lines)
+            subprocess.run(["sysctl", "-p"], check=True)
+            print(f"{GREEN}[+] BBR congestion control and network buffers optimized.{RESET}")
+        else:
+            print(f"{GREEN}[+] Network optimizations already present.{RESET}")
+    except Exception as e:
+        print(f"{RED}[!] Warning: Could not apply network optimizations: {e}{RESET}")
+
 def generate_fake_tls_secret(domain):
     try:
         hex_domain = binascii.hexlify(domain.encode()).decode()
@@ -143,7 +174,7 @@ WantedBy=multi-user.target
 
 def main():
     print(f"{GREEN}==============================================={RESET}")
-    print(f"{GREEN}   MTProto Telegram Proxy Auto-Installer v1.1  {RESET}")
+    print(f"{GREEN}   MTProto Telegram Proxy Auto-Installer v1.2  {RESET}")
     print(f"{GREEN}==============================================={RESET}")
 
     check_root()
@@ -155,6 +186,9 @@ def main():
 
     version = get_latest_mtg_version()
     download_and_install_mtg(version)
+
+    # Apply performance tuning before generating final steps
+    optimize_network_performance()
 
     secret = generate_fake_tls_secret(domain)
     ip = get_public_ip()
