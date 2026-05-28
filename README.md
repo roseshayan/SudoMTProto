@@ -1,4 +1,8 @@
 # SudoMTProto
+![GitHub release](https://img.shields.io/github/v/release/roseshayan/SudoMTProto)
+![License](https://img.shields.io/github/license/roseshayan/SudoMTProto)
+![Platform](https://img.shields.io/badge/platform-linux-blue)
+![Python](https://img.shields.io/badge/python-3.x-yellow)
 
 Intelligent MTProto Telegram Proxy Installer for Ubuntu Linux servers.
 
