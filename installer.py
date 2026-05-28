@@ -152,7 +152,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/mtg simple-run 0.0.0.0:{port} {secret}
+ExecStart=/usr/local/bin/mtg simple-run -d 0.0.0.0:{port} {secret}
 Restart=always
 RestartSec=3
 LimitNOFILE=65536
