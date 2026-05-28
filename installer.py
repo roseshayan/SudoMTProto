@@ -54,7 +54,6 @@ def get_valid_port():
             print(f"{RED}[!] Invalid input. Please enter a valid integer port number.{RESET}")
 
 def get_valid_domain():
-    """Asks for domain, defaults to google.com, or allows 'none' to skip Fake-TLS."""
     while True:
         user_input = input(f"{YELLOW}Enter Fake-TLS domain [Default: google.com, type 'none' to skip]: {RESET}").strip()
         if not user_input:
@@ -121,13 +120,14 @@ def optimize_network_performance():
         print(f"{RED}[!] Warning: Could not apply network optimizations.{RESET}")
 
 def generate_secret(domain):
+    """Generates a secure secret. If domain is None, prefixes with 'dd' for raw padded mode."""
     try:
         random_key = secrets.token_hex(16)
         if domain is None:
-            return random_key  # Plain standard MTProto secret
+            return f"dd{random_key}"  # Raw Obfuscated mode with random padding indicator
         
         hex_domain = binascii.hexlify(domain.encode()).decode()
-        return f"ee{random_key}{hex_domain}"  # Fake-TLS secret
+        return f"ee{random_key}{hex_domain}"  # Fake-TLS mode indicator
     except Exception as e:
         print(f"{RED}[!] Error generating secret: {e}{RESET}")
         sys.exit(1)
@@ -152,7 +152,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/mtg simple-run -d 0.0.0.0:{port} {secret}
+ExecStart=/usr/local/bin/mtg simple-run 0.0.0.0:{port} {secret}
 Restart=always
 RestartSec=3
 LimitNOFILE=65536
@@ -194,7 +194,7 @@ def install_flow():
     print(f"Server IP  : {ip}")
     print(f"Port       : {port}")
     print(f"Secret     : {secret}")
-    print(f"Fake Domain: {domain if domain else 'None (Plain Secret)'}")
+    print(f"Mode       : { 'Fake-TLS (' + domain + ')' if domain else 'Raw Obfuscated (dd-secret)' }")
     print(f"\n{YELLOW}Direct Telegram Connection Link:{RESET}")
     print(f"{GREEN}{telegram_link}{RESET}")
     print(f"==============================================={RESET}")
